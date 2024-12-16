@@ -1,0 +1,106 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.navbar{
+  background-color: black !important;
+}
+
+.nav-link{
+  color: white !important;
+}
+
+.navbar-brand {
+  color: white !important;
+}
+
+.navbar-nav {
+  margin-left: auto !important;
+}
+
+/*homescreen*/
+/* Container for the Hall Component */
+.row.bs {
+  display: flex; /* Flexbox for layout */
+  flex-direction: column; /* Stack elements vertically */
+  background: #575a5d; /* Background color */
+  border: 1px solid #dee2e6; /* Light border */
+  border-radius: 8px;
+  margin: 20px auto; /* Center horizontally */
+  padding: 20px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  width: 100%; /* Make it responsive */
+  max-width: 900px; /* Optional: Limit max width */
+}
+
+.row.bs:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* Elevate on hover */
+}
+
+/* Image Section */
+.col-md-4 {
+  width: 100%; /* Full width for the image section */
+  margin-bottom: 15px; /* Add spacing between sections */
+}
+
+.smallimg {
+  width: 100%; /* Make the image responsive */
+  height: auto;
+  border-radius: 8px;
+  object-fit: cover;
+  max-height: 300px; /* Optional: Limit image height */
+}
+
+.boxshadow{
+  box-shadow: rgba(0, 0, 0, 0.35) 0px 5px 15px;
+  margin-top: 20px !important;
+  border-radius: 5px !important;
+  padding: 20px !important;
+}
+
+/* Text Content Section */
+.col-md-7 {
+  width: 100%; /* Full width for the text section */
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Space out content vertically */
+}
+
+/* Button Container */
+.col-md-7 div[style*="float: right"] {
+  align-self: flex-end; /* Align button to the right */
+  margin-top: 10px;
+}
+
+/*carousal*/
+.bigimg {
+  max-height: 500px; /* Limit the height for a better fit */
+  object-fit: cover; /* Ensure images maintain aspect ratio */
+  border-radius: 5px !important;
+}
+
+input{
+  box-shadow: none !important;
+  margin-top: 10px;
+  border: 1px solid black !important;
+}
+
+h2{
+  font-size: 30px !important;
+  padding: 10px;
+  font-weight: bold !important;
+  text-align: center;
+}
+
