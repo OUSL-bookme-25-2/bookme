@@ -10,7 +10,7 @@ const hallSchema = mongoose.Schema({
         required: true
     },
     phoneNumber: {
-        type: String,  // Ensure phoneNumber is a string
+        type: String,  
         required: true
     },
     rentPerDay: {

@@ -11,7 +11,7 @@ import Swal from 'sweetalert2';
 const stripePromise = loadStripe('pk_test_51QVxg6RqwHG4IssuZZFEjCTlPfYfNqvCdu7kdIlGpeB4j9lf9G0h2CTnrBTOUUwtWwunjMfBxezzngGCIT9RbiRw00bNm3XSss');
 
 function BookingScreen() {
-    const { hallid, fromdate, todate } = useParams();
+    const { hallid, fromdate, todate} = useParams();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const [hall, setHall] = useState(null);
