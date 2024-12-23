@@ -12,6 +12,10 @@ code {
     monospace;
 }
 
+p{
+  font-size: 16px !important;
+}
+
 .navbar{
   background-color: black !important;
 }
@@ -103,4 +107,16 @@ h2{
   font-weight: bold !important;
   text-align: center;
 }
+
+.landing{
+  background-color: black !important;
+  height: 90vh;
+}
+
+.btn{
+  background-color: black;
+  color : white;
+  box-shadow : none !important;
+}
+
 

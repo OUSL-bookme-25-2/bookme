@@ -8,7 +8,7 @@ const moment = require('moment');
 // Create Stripe Checkout Session
 // Backend: /api/bookings/create-checkout-session
 router.post('/create-checkout-session', async (req, res) => {
-    const { hallid, userid, fromdate, todate, totalamount, totaldays, successUrl, cancelUrl } = req.body;
+    const { hallid, userid, fromdate, todate, totalamount, totaldays, cancelUrl } = req.body;
 
     try {
         const hall = await Hall.findById(hallid);
@@ -30,7 +30,7 @@ router.post('/create-checkout-session', async (req, res) => {
                 },
             ],
             mode: 'payment',
-            success_url: `http://localhost:3000/success?session_id={CHECKOUT_SESSION_ID}`,  // Hardcode the frontend URL
+            success_url: `http://localhost:3000/success?session_id={CHECKOUT_SESSION_ID}`,  
             cancel_url: cancelUrl || `${req.headers.origin}/cancel`,
             metadata: {
                 hallid,
@@ -38,7 +38,7 @@ router.post('/create-checkout-session', async (req, res) => {
                 fromdate,
                 todate,
                 totaldays,
-                phoneNumber: hall.PhoneNumber,
+                phoneNumber: hall.phoneNumber,
             },
         });
 
@@ -128,6 +128,66 @@ router.post('/confirm-booking', async (req, res) => {
     }
 });
 
+
+router.post("/getbookingsbyuserid", async (req, res) => {
+    const userid = req.body.userid
+
+    try {
+        const bookings = await Booking.find({userid : userid})
+        res.send(bookings)
+    } catch (error) {
+        return res.status(400).json({ error });
+    }
+});
+
+
+router.post("/cancelbooking", async (req, res) => {
+    const { bookingid, hallid } = req.body;
+
+    try {
+        // Find the booking by ID
+        const bookingitem = await Booking.findOne({ _id: bookingid });
+        if (!bookingitem) {
+            return res.status(404).json({ success: false, error: "Booking not found" });
+        }
+
+        // Update booking status to "cancelled"
+        bookingitem.status = 'cancelled';
+        await bookingitem.save();
+
+        // Find the hall by ID
+        const hall = await Hall.findOne({ _id: hallid });
+        if (!hall) {
+            return res.status(404).json({ success: false, error: "Hall not found" });
+        }
+
+        // Remove the cancelled booking from the hall's current bookings
+        hall.currentBookings = hall.currentBookings.filter(
+            booking => booking.bookingid.toString() !== bookingid
+        );
+
+        await hall.save();
+
+        // Send a success response
+        res.status(200).json({ success: true, message: "Your booking was cancelled successfully" });
+    } catch (error) {
+        console.error('Error cancelling booking:', error); // Log error for debugging
+        res.status(500).json({ success: false, error: "An internal server error occurred" });
+    }
+});
+
+
+
+router.get("/getallbookings", async (req, res) => {
+
+    try{
+        const bookings = await Booking.find()
+        res.send(bookings)
+    } catch (error){
+        return res.status(400).json({error});
+    }
+
+});
 
 
 module.exports = router;

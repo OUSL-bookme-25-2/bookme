@@ -10,7 +10,7 @@ const hallsRoute = require('./routes/hallsRoute');
 const userRoute = require('./routes/userRoute');
 const bookingsRoute = require('./routes/bookingsRoute');
 
-// Define your routes
+
 app.use('/api/halls', hallsRoute);
 app.use('/api/users', userRoute);
 app.use('/api/bookings', bookingsRoute);

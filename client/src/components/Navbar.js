@@ -16,7 +16,7 @@ function Navbar() {
     return (
         <div>
             <nav className="navbar navbar-expand-lg" style={{ backgroundColor: '#343a40' }}>
-                <a className="navbar-brand text-white" href="#">Bookme</a>
+                <a className="navbar-brand text-white" href="/home">Bookme</a>
                 <button 
                     className="navbar-toggler" 
                     type="button" 
@@ -43,7 +43,7 @@ function Navbar() {
                                     {user.name}
                                 </button>
                                 <div className="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                    <a className="dropdown-item" href="/bookings">Bookings</a>
+                                    <a className="dropdown-item" href="/profile">Profile</a>
                                     <a className="dropdown-item" href="#" onClick={logout}>Logout</a>
                                 </div>
                             </div>

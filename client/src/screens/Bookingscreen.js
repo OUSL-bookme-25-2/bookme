@@ -21,6 +21,13 @@ function BookingScreen() {
     const totaldays = formattedToDate.diff(formattedFromDate, 'days') + 1;
 
     useEffect(() => {
+        const currentUser = localStorage.getItem('currentUser');
+        if (!currentUser) {
+            // Redirect to login page if the user is not logged in
+            window.location.href = '/login';
+            return;
+        }
+
         const fetchHall = async () => {
             try {
                 const { data } = await axios.post('/api/halls/gethallbyid', { hallid });
@@ -37,6 +44,13 @@ function BookingScreen() {
     }, [hallid]);
 
     async function bookHall() {
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (!currentUser) {
+            alert('You are not logged in. Please log in to continue.');
+            window.location.href = '/login';
+            return;
+        }
+
         if (!hall) {
             alert('Error: Hall information is missing.');
             return;
@@ -45,10 +59,9 @@ function BookingScreen() {
         try {
             setLoading(true);
 
-            // Send hall data including phone number
             const { data } = await axios.post('/api/bookings/create-checkout-session', {
                 hallid,
-                userid: JSON.parse(localStorage.getItem('currentUser'))._id,
+                userid: currentUser._id,
                 fromdate: formattedFromDate.format('DD-MM-YYYY'),
                 todate: formattedToDate.format('DD-MM-YYYY'),
                 totalamount: totaldays * hall.rentPerDay,
@@ -86,7 +99,7 @@ function BookingScreen() {
                             <div style={{ textAlign: 'right' }}>
                                 <h1>Booking Details</h1>
                                 <hr />
-                                <p>Name: {JSON.parse(localStorage.getItem('currentUser')).name}</p>
+                                <p>Name: {JSON.parse(localStorage.getItem('currentser')).name}</p>
                                 <p>From Date: {formattedFromDate.format('DD-MM-YYYY')}</p>
                                 <p>To Date: {formattedToDate.format('DD-MM-YYYY')}</p>
                                 <p>Total Days: {totaldays}</p>

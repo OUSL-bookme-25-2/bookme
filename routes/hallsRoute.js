@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const Hall = require("../models/hall");
+const Hall = require('../models/hall');
 
 // Get all the hall data
 router.get("/getallHalls", async (req, res) => {
@@ -26,5 +26,18 @@ router.post("/gethallbyid", async (req, res) => {
         return res.status(400).json({ message: err.message });
     }
 });
+
+router.post("/addhall", async(req, res) => {
+
+    try{
+        const newhall = new Hall(req.body)
+        await newhall.save()
+
+        res.send('New Room Added Successfully')
+    } catch (error) {
+        return res.status(400).json({ error });
+    }
+})
+
 
 module.exports = router;
