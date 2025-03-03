@@ -1,9 +1,18 @@
 const express = require("express");
 
+const cors = require("cors");
+
+
+
 const app = express();
 
 // Use express.json() once to parse JSON request body
 app.use(express.json());
+
+app.use(cors({ 
+    origin: "http://localhost:3000", // Allow requests from frontend
+    credentials: true 
+}));
 
 const dbConfig = require('./db');
 const hallsRoute = require('./routes/hallsRoute');

@@ -1,7 +1,6 @@
-// Frontend: BookingScreen.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Loader from '../components/Loader';
 import Error from '../components/Error';
 import moment from 'moment';
@@ -15,16 +14,17 @@ function BookingScreen() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
     const [hall, setHall] = useState(null);
+    const navigate = useNavigate();
 
     const formattedFromDate = moment(fromdate, 'DD-MM-YYYY');
     const formattedToDate = moment(todate, 'DD-MM-YYYY');
     const totaldays = formattedToDate.diff(formattedFromDate, 'days') + 1;
 
+
     useEffect(() => {
         const currentUser = localStorage.getItem('currentUser');
         if (!currentUser) {
-            // Redirect to login page if the user is not logged in
-            window.location.href = '/login';
+            navigate('/login');
             return;
         }
 
@@ -41,45 +41,54 @@ function BookingScreen() {
         };
 
         fetchHall();
-    }, [hallid]);
+    }, [hallid, navigate]);
 
-    async function bookHall() {
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (!currentUser) {
-            alert('You are not logged in. Please log in to continue.');
-            window.location.href = '/login';
-            return;
-        }
-
-        if (!hall) {
-            alert('Error: Hall information is missing.');
-            return;
-        }
-
-        try {
-            setLoading(true);
-
-            const { data } = await axios.post('/api/bookings/create-checkout-session', {
-                hallid,
-                userid: currentUser._id,
-                fromdate: formattedFromDate.format('DD-MM-YYYY'),
-                todate: formattedToDate.format('DD-MM-YYYY'),
-                totalamount: totaldays * hall.rentPerDay,
-                totaldays,
-                successUrl: `${window.location.origin}/success`,
-                cancelUrl: `${window.location.origin}/cancel`,
-            });
-
-            const stripe = await stripePromise;
-            await stripe.redirectToCheckout({ sessionId: data.sessionId });
-        } catch (error) {
-            console.error('Error during booking:', error);
-            alert('Payment failed. Please try again.');
-            Swal.fire('Oops', 'Something went wrong', 'error');
-        } finally {
-            setLoading(false);
-        }
+ async function bookHall() {
+    const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+    if (!currentUser) {
+        Swal.fire('Oops', 'You are not logged in. Please log in to continue.', 'error');
+        navigate('/login');
+        return;
     }
+
+    if (!hall) {
+        Swal.fire('Oops', 'Error: Hall information is missing.', 'error');
+        return;
+    }
+
+    try {
+        setLoading(true);
+
+        const { data } = await axios.post('/api/bookings/create-checkout-session', {
+            hallid,
+            userid: currentUser._id,
+            fromdate: formattedFromDate.format("DD-MM-YYYY"), 
+            todate: formattedToDate.format("DD-MM-YYYY"),
+            totalamount: totaldays * hall.rentPerDay,
+            totaldays,
+            successUrl: `${window.location.origin}/success`,
+            cancelUrl: `${window.location.origin}/cancel`,
+        });
+
+        if (!data.sessionId) {
+            Swal.fire('Error', 'Failed to create checkout session.', 'error');
+            return;
+        }
+
+        const stripe = await stripePromise;
+        const result = await stripe.redirectToCheckout({ sessionId: data.sessionId });
+
+        if (result.error) {
+            Swal.fire('Oops', 'Payment process failed.', 'error');
+        }
+
+    } catch (error) {
+        console.error('Error during booking:', error);
+        Swal.fire('Oops', 'Payment failed. Please try again.', 'error');
+    } finally {
+        setLoading(false);
+    }
+}
 
     return (
         <div className="m-5">
@@ -91,20 +100,20 @@ function BookingScreen() {
                 <div>
                     <div className="row justify-content-center mt-5 boxshadow">
                         <div className="col-md-6">
-                            <h1>{hall.name}</h1>
-                            <img src={hall.imageUrls[0]} className="bigimg" alt={hall.name} />
+                            <h1>{hall?.name}</h1>
+                            <img src={hall?.imageUrls[0]} className="bigimg" alt={hall?.name} />
                         </div>
 
                         <div className="col-md-6">
                             <div style={{ textAlign: 'right' }}>
                                 <h1>Booking Details</h1>
                                 <hr />
-                                <p>Name: {JSON.parse(localStorage.getItem('currentser')).name}</p>
+                                <p>Name: {JSON.parse(localStorage.getItem('currentUser')).name}</p>
                                 <p>From Date: {formattedFromDate.format('DD-MM-YYYY')}</p>
                                 <p>To Date: {formattedToDate.format('DD-MM-YYYY')}</p>
                                 <p>Total Days: {totaldays}</p>
-                                <p>Rent Per Day: {hall.rentPerDay}</p>
-                                <p>Total Amount: LKR {totaldays * hall.rentPerDay}</p>
+                                <p>Rent Per Day: {hall?.rentPerDay}</p>
+                                <p>Total Amount: LKR {totaldays * hall?.rentPerDay}</p>
                             </div>
                             <button className="btn btn-primary" onClick={bookHall} disabled={loading}>
                                 {loading ? 'Processing...' : 'Pay Now'}

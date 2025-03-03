@@ -1,61 +1,58 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
-import { useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
+import axios from "axios";
+const moment = require('moment');
 
-function SuccessScreen() {
-    const [bookingDetails, setBookingDetails] = useState(null);
-    const [errorMessage, setErrorMessage] = useState(null);
-    const [isConfirmed, setIsConfirmed] = useState(false); 
+
+const SuccessScreen = () => {
     const location = useLocation();
-    const searchParams = new URLSearchParams(location.search);
-    const sessionId = searchParams.get('session_id');
+    const [loading, setLoading] = useState(true);
+    const [booking, setBooking] = useState(null);
+    const [error, setError] = useState(null);
 
     useEffect(() => {
+        const searchParams = new URLSearchParams(location.search);
+        const sessionId = searchParams.get("session_id");
+
+        console.log(`Session ID from URL: ${sessionId}`);
+
+        if (!sessionId) {
+            setError("Session ID not found. Unable to confirm booking.");
+            setLoading(false);
+            return;
+        }
+
         const confirmBooking = async () => {
             try {
-                const { data } = await axios.post('/api/bookings/confirm-booking', { sessionId });
-        
-                if (data.success && data.booking) {
-                    setBookingDetails(data.booking);
-                    setIsConfirmed(true);
-                } else {
-                    setErrorMessage(data.message || 'Failed to confirm booking.');
-                }
-            } catch (error) {
-                console.error('Error confirming booking:', error.response?.data?.message || error.message);
-                setErrorMessage(error.response?.data?.message || 'Internal Server Error. Please try again later.');
+                console.log(`Fetching booking details from: http://localhost:5000/api/bookings/getbookingdetails?session_id=${sessionId}`);
+                
+                const response = await axios.get(`http://localhost:5000/api/bookings/getbookingdetails?session_id=${sessionId}`);
+                console.log("Booking Details:", response.data);
+
+                setBooking(response.data.booking);
+            } catch (err) {
+                console.error("Error confirming booking:", err.response?.data || err.message);
+                setError("Failed to confirm booking.");
+            } finally {
+                setLoading(false);
             }
         };
-        
 
-        if (sessionId && !isConfirmed) {
-            confirmBooking(); // Call API only once
-        } else if (!sessionId) {
-            setErrorMessage('Missing session ID');
-        }
-    }, [sessionId, isConfirmed]);
+        confirmBooking();
+    }, [location]);
 
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
-        return date.toLocaleDateString(); // Formats date to the user's locale
-    };
+    if (loading) return <p>Loading...</p>;
+    if (error) return <p style={{ color: "red" }}>{error}</p>;
 
     return (
-        <div className="container">
-            <h1>Payment Successful</h1>
-            {errorMessage ? (
-                <p style={{ color: 'red' }}>{errorMessage}</p> // Show error if booking confirmation fails
-            ) : bookingDetails ? (
-                <div>
-                    <p>Booking confirmed for: {bookingDetails.hall.name}</p>
-                    <p>Booking Dates: {formatDate(bookingDetails.fromdate)} to {formatDate(bookingDetails.todate)}</p>
-                    <p>Total Amount: LKR {bookingDetails.totalamount}</p>
-                </div>
-            ) : (
-                <p>Confirming your booking...</p> // Show message while confirming the booking
-            )}
+        <div>
+            <h2>Booking Confirmed!</h2>
+            <p>Hall: {booking?.hall}</p>
+            <p>From: {moment(booking?.fromdate).format("DD-MM-YYYY")}</p>
+            <p>To: {moment(booking?.todate).format("DD-MM-YYYY")}</p>
+            <p>Total Amount: {booking?.totalamount} LKR</p>
         </div>
     );
-}
+};
 
 export default SuccessScreen;

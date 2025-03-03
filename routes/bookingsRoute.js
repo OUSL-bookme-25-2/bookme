@@ -8,37 +8,43 @@ const moment = require('moment');
 // Create Stripe Checkout Session
 // Backend: /api/bookings/create-checkout-session
 router.post('/create-checkout-session', async (req, res) => {
-    const { hallid, userid, fromdate, todate, totalamount, totaldays, cancelUrl } = req.body;
+    const { hallid, userid, fromdate, todate, totalamount, totaldays } = req.body;
 
     try {
         const hall = await Hall.findById(hallid);
         if (!hall) return res.status(404).json({ message: 'Hall not found' });
 
+        // Ensure dates are in correct format
+        const formattedFromDate = moment(fromdate, "DD-MM-YYYY").format("DD-MM-YYYY");
+        const formattedToDate = moment(todate, "DD-MM-YYYY").format("DD-MM-YYYY");
+
+        console.log("Formatted metadata being sent to Stripe:", {
+            hallid,
+            userid,
+            fromdate: formattedFromDate,
+            todate: formattedToDate,
+            totaldays
+        });
+
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
-            line_items: [
-                {
-                    price_data: {
-                        currency: 'LKR',
-                        product_data: {
-                            name: hall.name,
-                            description: `Booking from ${fromdate} to ${todate} for ${totaldays} days`,
-                        },
-                        unit_amount: totalamount * 100, // Amount in cents
-                    },
-                    quantity: 1,
+            line_items: [{
+                price_data: {
+                    currency: 'LKR',
+                    product_data: { name: hall.name },
+                    unit_amount: totalamount * 100,
                 },
-            ],
+                quantity: 1,
+            }],
             mode: 'payment',
-            success_url: `http://localhost:3000/success?session_id={CHECKOUT_SESSION_ID}`,  
-            cancel_url: cancelUrl || `${req.headers.origin}/cancel`,
+            success_url: `http://localhost:3000/success?session_id={CHECKOUT_SESSION_ID}`,
+            cancel_url: `http://localhost:3000/cancel`,
             metadata: {
-                hallid,
-                userid,
-                fromdate,
-                todate,
-                totaldays,
-                phoneNumber: hall.phoneNumber,
+                hallid: hall._id.toString(),
+                userid: userid.toString(),
+                fromdate: formattedFromDate,
+                todate: formattedToDate,
+                totaldays: totaldays.toString(),
             },
         });
 
@@ -53,77 +59,84 @@ router.post('/create-checkout-session', async (req, res) => {
 // Confirm booking after successful payment
 router.post('/confirm-booking', async (req, res) => {
     const { sessionId } = req.body;
+    console.log('Confirming booking with session ID:', sessionId);
 
     try {
-        // Log the sessionId to ensure it's coming correctly from the frontend
-        console.log('Session ID:', sessionId);
-
-        // Retrieve the session data from Stripe
         const session = await stripe.checkout.sessions.retrieve(sessionId);
-        
-        // Log the session to check if it's being fetched correctly
-        console.log('Stripe Session:', session);
+        console.log('Stripe session retrieved:', session);
 
         if (!session || session.payment_status !== 'paid') {
-            console.log('Payment not successful');
             return res.status(400).json({ message: 'Payment not successful' });
         }
 
         const { hallid, userid, fromdate, todate, totaldays } = session.metadata;
 
-        // Validate hall existence
-        const hall = await Hall.findById(hallid);
-        if (!hall) {
-            console.log('Hall not found');
-            return res.status(404).json({ message: 'Hall not found' });
-        }
+        console.log("Received from Stripe metadata:", { fromdate, todate });
 
-        // Validate that fromdate and todate are valid dates
-        if (isNaN(new Date(fromdate)) || isNaN(new Date(todate))) {
-            console.log('Invalid dates:', fromdate, todate);
+
+        const parsedFromDate = moment(fromdate, "DD-MM-YYYY").toDate();
+        const parsedToDate = moment(todate, "DD-MM-YYYY").toDate();
+
+        console.log("Parsed Dates:", parsedFromDate, parsedToDate);
+
+        if (!parsedFromDate || !parsedToDate) {
+            console.error("Invalid dates after parsing:", fromdate, todate);
             return res.status(400).json({ message: 'Invalid booking dates' });
         }
 
-        // Check for overlapping bookings
-        const overlappingBookings = hall.currentBookings.some(booking =>
-            (new Date(fromdate) <= new Date(booking.todate) && new Date(todate) >= new Date(booking.fromdate))
-        );
-        
-        if (overlappingBookings) {
-            console.log('Overlapping bookings detected');
-            return res.status(400).json({ message: 'Hall is already booked for the selected dates' });
+        const hall = await Hall.findById(hallid);
+        if (!hall) {
+            console.error(" Hall not found:", hallid);
+            return res.status(404).json({ message: 'Hall not found' });
         }
 
-        // Create booking
+
+        const transactionId = session.payment_intent || 'NO_TRANSACTION_ID';
+        console.log("Transaction ID:", transactionId);
+
         const booking = new Booking({
             hall: hall._id,
             userid,
-            fromdate: new Date(fromdate),
-            todate: new Date(todate),
-            totaldays,
-            totalamount: session.amount_total / 100,  // Convert from cents to LKR
-            transactionId: session.payment_intent,
+            fromdate: parsedFromDate,
+            todate: parsedToDate,
+            totaldays :parseInt(totaldays),
+            totalamount:  session.amount_total,
+            transactionId: transactionId,
+            status : 'booked'
         });
-
-        // Save booking
+        
+        // Log before saving to MongoDB
+        console.log("Saving booking to MongoDB:", booking);
+        
         const savedBooking = await booking.save();
+        console.log("Booking successfully saved in MongoDB:", savedBooking);
+        
+        const updatedHall = await Hall.findByIdAndUpdate(
+            hall._id,
+            {
+                $push: {
+                    currentBookings: {
+                        bookingid: savedBooking._id,
+                        fromdate: parsedFromDate,
+                        todate: parsedToDate,
+                        userid: userid,
+                        status: 'booked'
+                    }
+                }
+            },
+            { new: true } 
+        );
+        
 
-        // Update hall's current bookings
-        hall.currentBookings.push({
-            bookingid: savedBooking._id,
-            fromdate: new Date(fromdate),
-            todate: new Date(todate),
-            userid,
-            status: 'booked',
-        });
-        hall.markModified('currentBookings');
-        await hall.save();
+        if (!halltemp) {
+            return res.status(404).json({ error: "Hall not found" });
+        }
 
-        console.log('Booking confirmed:', savedBooking);
+        console.log("Updated hall current bookings:", updatedHall.currentBookings);
 
         res.status(200).json({ success: true, booking: savedBooking });
     } catch (error) {
-        console.error('Error confirming booking:', error);  // Log detailed error
+        console.error('Error confirming booking:', error);
         res.status(500).json({ message: 'Failed to confirm booking' });
     }
 });
@@ -189,5 +202,24 @@ router.get("/getallbookings", async (req, res) => {
 
 });
 
+router.get("/getbookingdetails", async (req, res) => {
+    const { session_id } = req.query;
+
+    if (!session_id) return res.status(400).json({ message: "Session ID is required" });
+
+    try {
+        const session = await stripe.checkout.sessions.retrieve(session_id);
+        console.log("Retrieved Stripe session:", session);
+
+        if (!session || session.payment_status !== "paid") {
+            return res.status(400).json({ message: "Payment not successful" });
+        }
+
+        res.status(200).json({ success: true, metadata: session.metadata });
+    } catch (error) {
+        console.error("Error fetching booking details:", error);
+        res.status(500).json({ message: "Failed to fetch booking details" });
+    }
+});
 
 module.exports = router;
