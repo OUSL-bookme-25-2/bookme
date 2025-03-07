@@ -34,13 +34,13 @@ function Loginscreen() {
     }
 
     return (
-        <div>
+        <div >
             {loading && <Loader />}
-            <div className="row justify-content-center mt-5">
-                <div className="col-md-5 mt-5">
+            <div className="row justify-content-center mt-5" >
+                <div className="col-md-5 mt-5" style={{ backgroundColor: 'black' }}>
                     {error && <Error message={error} />}
                     <div className="boxshadow p-4">
-                        <h2>Login</h2>
+                        <h2 style={{ color: 'white' }}>Login</h2>
                         <input
                             type="email"
                             className="form-control"

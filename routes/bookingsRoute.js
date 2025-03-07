@@ -18,13 +18,6 @@ router.post('/create-checkout-session', async (req, res) => {
         const formattedFromDate = moment(fromdate, "DD-MM-YYYY").format("DD-MM-YYYY");
         const formattedToDate = moment(todate, "DD-MM-YYYY").format("DD-MM-YYYY");
 
-        console.log("Formatted metadata being sent to Stripe:", {
-            hallid,
-            userid,
-            fromdate: formattedFromDate,
-            todate: formattedToDate,
-            totaldays
-        });
 
         const session = await stripe.checkout.sessions.create({
             payment_method_types: ['card'],
@@ -47,7 +40,10 @@ router.post('/create-checkout-session', async (req, res) => {
                 totaldays: totaldays.toString(),
             },
         });
-
+        const bookingDetails = await Booking.create({
+            hallid, userid, fromdate, todate, totalamount, totaldays
+        });
+        console.log("bookingDetails", bookingDetails);
         res.json({ sessionId: session.id });
     } catch (error) {
         console.error('Error creating Stripe Checkout session:', error);
