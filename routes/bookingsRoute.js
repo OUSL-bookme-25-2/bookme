@@ -8,7 +8,7 @@ const moment = require('moment');
 // Create Stripe Checkout Session
 // Backend: /api/bookings/create-checkout-session
 router.post('/create-checkout-session', async (req, res) => {
-    const { hallid, userid, fromdate, todate, totalamount, totaldays } = req.body;
+    const { hall, hallid, userid, fromdate, todate, totalamount, totaldays } = req.body;
 
     try {
         const hall = await Hall.findById(hallid);
@@ -33,17 +33,18 @@ router.post('/create-checkout-session', async (req, res) => {
             success_url: `http://localhost:3000/success?session_id={CHECKOUT_SESSION_ID}`,
             cancel_url: `http://localhost:3000/cancel`,
             metadata: {
+                hall : hall.name,//
                 hallid: hall._id.toString(),
                 userid: userid.toString(),
                 fromdate: formattedFromDate,
-                todate: formattedToDate,
+                todate: formattedToDate,//
+                totalamount: totalamount.toString(),//
                 totaldays: totaldays.toString(),
+                transactionId: '1234' //
             },
         });
-        const bookingDetails = await Booking.create({
-            hallid, userid, fromdate, todate, totalamount, totaldays
-        });
-        console.log("bookingDetails", bookingDetails);
+        
+        
         res.json({ sessionId: session.id });
     } catch (error) {
         console.error('Error creating Stripe Checkout session:', error);
@@ -65,7 +66,7 @@ router.post('/confirm-booking', async (req, res) => {
             return res.status(400).json({ message: 'Payment not successful' });
         }
 
-        const { hallid, userid, fromdate, todate, totaldays } = session.metadata;
+        const {hall, hallid, userid, fromdate, todate, totaldays } = session.metadata;
 
         console.log("Received from Stripe metadata:", { fromdate, todate });
 
@@ -80,32 +81,35 @@ router.post('/confirm-booking', async (req, res) => {
             return res.status(400).json({ message: 'Invalid booking dates' });
         }
 
-        const hall = await Hall.findById(hallid);
-        if (!hall) {
+        const Hall = await Hall.findById(hallid);
+        if (!Hall) {
             console.error(" Hall not found:", hallid);
             return res.status(404).json({ message: 'Hall not found' });
         }
 
 
-        const transactionId = session.payment_intent || 'NO_TRANSACTION_ID';
-        console.log("Transaction ID:", transactionId);
+        //const transactionId = session.payment_intent || 'NO_TRANSACTION_ID';
+        //console.log("Transaction ID:", transactionId);
 
-        const booking = new Booking({
-            hall: hall._id,
+        const newbooking = new Booking({
+            hall : Hall.name,//
+            hall: Hall._id,
             userid,
             fromdate: parsedFromDate,
             todate: parsedToDate,
             totaldays :parseInt(totaldays),
             totalamount:  session.amount_total,
-            transactionId: transactionId,
+            transactionId: '123',
             status : 'booked'
         });
         
         // Log before saving to MongoDB
         console.log("Saving booking to MongoDB:", booking);
+         
+
         
-        const savedBooking = await booking.save();
-        console.log("Booking successfully saved in MongoDB:", savedBooking);
+        const booking = await newbooking.save();
+        console.log("Booking successfully saved in MongoDB:", newbooking);
         
         const updatedHall = await Hall.findByIdAndUpdate(
             hall._id,

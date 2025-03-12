@@ -19,10 +19,10 @@ function ProfileScreen() {
             boxShadow: '0 0 20px rgba(0,0,0,0.1)'
         },
         tabContent: {
-            padding: '2rem'
+            padding: '2rem',
         },
         profileSection: {
-            backgroundColor: '#f8f9fa',
+            backgroundColor: 'black',
             padding: '2rem',
             borderRadius: '8px',
             marginTop: '1rem'

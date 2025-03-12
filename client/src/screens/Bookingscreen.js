@@ -30,7 +30,7 @@ function BookingScreen() {
 
         const fetchHall = async () => {
             try {
-                const { data } = await axios.post('/api/halls/gethallbyid', { hallid });
+                const { data } = await axios.post('/api/halls/gethallbyid', { hallid })
                 setHall(data);
                 setLoading(false);
             } catch (err) {
@@ -60,6 +60,7 @@ function BookingScreen() {
         setLoading(true);
 
         const { data } = await axios.post('/api/bookings/create-checkout-session', {
+            hall,
             hallid,
             userid: currentUser._id,
             fromdate: formattedFromDate.format("DD-MM-YYYY"), 

@@ -3,6 +3,7 @@ import Loader from "../components/Loader";
 import Error from "../components/Error";
 import Success from "../components/Success";
 import axios from 'axios';
+import {useNavigate} from 'react-router-dom';
 
 function Registerscreen() {
     const [name, setName] = useState('');
@@ -13,6 +14,8 @@ function Registerscreen() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
     const [success, setSuccess] = useState(false);
+    const navigate = useNavigate();
+
 
     async function register() {
         if (!name || !email || !password || !cpassword) {
@@ -44,6 +47,7 @@ function Registerscreen() {
             console.log('Registration successful:', response.data);
             setLoading(false);
             setSuccess(true);
+            navigate('/home');
 
             setName('');
             setEmail('');
@@ -61,11 +65,11 @@ function Registerscreen() {
         <div>
             {loading && <Loader />}
             <div className="row justify-content-center mt-5">
-                <div className="col-md-5 mt-5">
+                <div className="col-md-5 mt-5"style={{ backgroundColor: 'black' }}>
                     {error && <Error message="Registration failed. Please try again." />}
                     {success && <Success message="Registration Successful!" />}
                     <div className="boxshadow p-4">
-                        <h2>Register</h2>
+                        <h2 style={{ color: 'white' }}>Register</h2>
                         <input
                             type="text"
                             className="form-control mt-3"
@@ -98,6 +102,7 @@ function Registerscreen() {
                             className="btn btn-primary mt-3"
                             onClick={register}
                             disabled={loading}
+                            style={{ backgroundColor: 'white', color: 'black' }}
                         >
                             {loading ? 'Registering...' : 'Register'}
                         </button>

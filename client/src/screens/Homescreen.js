@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import Hall from "../components/Hall"; // Import the Hall component
+import Hall from "../components/Hall"; 
 import Loader from "../components/Loader";
 import Error from "../components/Error";
 import moment from "moment";
 import { DatePicker, Space } from "antd";
-import "antd/dist/reset.css"; // Import Ant Design styles
+import "antd/dist/reset.css"; 
 
 
 const { RangePicker } = DatePicker;
@@ -111,8 +111,8 @@ function Homescreen() {
       {/* Date Picker Section */}
       <div className="row justify-content-center mb-4">
         <div className="col-md-8">
-          <div className="date-picker-container p-4 shadow-sm rounded" style={{ backgroundColor: '#f8f9fa' }}>
-            <h4 className="text-center mb-3">Select Dates to Check Availability</h4>
+          <div className="date-picker-container p-4 shadow-sm rounded" style={{ backgroundColor: 'black' }}>
+            <h4 className="text-center mb-3" style={{ color: 'white' }}>Select Dates to Check Availability</h4>
             <RangePicker 
               format="DD-MM-YYYY"
               onChange={filterByDate}
@@ -131,8 +131,8 @@ function Homescreen() {
           <Error message={error} />
         ) : halls.length > 0 ? (
           halls.map((hall, index) => (
-            <div key={index} className="col-12 mb-4">
-              <div className="hall-card shadow-sm rounded" style={{ height: '100%' }}>
+            <div key={index} className="col-12 mb-4" >
+              <div className="hall-card shadow-sm rounded" style={{ height: '80%'}}>
                 <Hall hall={hall} fromdate={fromdate} todate={todate} />
               </div>
             </div>

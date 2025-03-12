@@ -3,21 +3,25 @@ const mongoose = require('mongoose');
 const bookingSchema = mongoose.Schema(
   {
     hall: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: 'Hall',
       required: true, // Ensure the hall is required
     },
+    hallid : {
+      type: String,
+      required: true,
+    },
     userid: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: 'User',
       required: true,
     },
     fromdate: {
-      type: Date,
+      type: String,
       required: true,
     },
     todate: {
-      type: Date,
+      type: String,
       required: true,
     },
     totalamount: {
@@ -31,13 +35,12 @@ const bookingSchema = mongoose.Schema(
     transactionId: {
       type: String,
       required: true,
-      unique: true, // Ensure transactionId is unique
+      unique: true, 
     },
     status: {
       type: String,
       required: true,
-      default: 'booked', // Default status when booking is created
-      enum: ['booked', 'cancelled', 'completed'], // Valid statuses
+      default: 'booked',
     },
   },
   {

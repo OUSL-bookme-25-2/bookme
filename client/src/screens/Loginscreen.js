@@ -59,6 +59,7 @@ function Loginscreen() {
                             className="btn btn-primary mt-3"
                             onClick={login}
                             disabled={loading}
+                            style={{ backgroundColor: 'white', color: 'black' }}
                         >
                             {loading ? 'Logging in...' : 'Login'}
                         </button>
